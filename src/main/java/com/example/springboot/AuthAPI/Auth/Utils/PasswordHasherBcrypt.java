@@ -1,6 +1,6 @@
-package com.example.springboot.AuthAPI.Auth.helper;
+package com.example.springboot.AuthAPI.Auth.Utils;
 
-import com.example.springboot.AuthAPI.Auth.helper.impl.IPasswordHasher;
+import com.example.springboot.AuthAPI.Auth.Utils.impl.IPasswordHasher;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;

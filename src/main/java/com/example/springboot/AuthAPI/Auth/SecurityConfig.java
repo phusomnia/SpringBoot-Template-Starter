@@ -1,14 +1,11 @@
-package com.example.springboot.Core;
+package com.example.springboot.AuthAPI.Auth;
 
+import com.example.springboot.Core.JwtAuthEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
@@ -20,17 +17,17 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
-    private final JwtFilter _filter;
+    private final JwtFilter _jwtFilter;
     private final JwtAuthEntryPoint _jwtAuthenticationEntryPoint;
-
+    
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer()
     {
         return webSecurity -> webSecurity.ignoring().requestMatchers(
-                "/api/v1/**",
+                "api/v1/**",
                 "/api-docs",
                 "/scalar.html"      
         );
@@ -42,14 +39,13 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(CorsConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorizeRequests -> authorizeRequests.requestMatchers("/api/v1/auth").permitAll()
+                .authorizeHttpRequests(authorizeRequests -> authorizeRequests.requestMatchers("/api/v1/auth/secure").permitAll()
                         .anyRequest()
                         .authenticated()
                 )
                 .httpBasic(basic -> basic.authenticationEntryPoint(_jwtAuthenticationEntryPoint))
-//                .authenticationProvider(authenticationProvider())
                 .exceptionHandling(Customizer.withDefaults())
-                .addFilterBefore(_filter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(_jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }    
 }
