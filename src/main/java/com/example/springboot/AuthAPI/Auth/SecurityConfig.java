@@ -29,7 +29,8 @@ public class SecurityConfig {
         return webSecurity -> webSecurity.ignoring().requestMatchers(
                 "api/v1/**",
                 "/api-docs",
-                "/scalar.html"      
+                "/scalar.html",
+                "/chat.html"
         );
     }
     
@@ -39,7 +40,10 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(CorsConfigurer::disable)
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorizeRequests -> authorizeRequests.requestMatchers("/api/v1/auth/secure").permitAll()
+                .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers("/api/v1/auth/secure").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/topic/**").permitAll()
                         .anyRequest()
                         .authenticated()
                 )
