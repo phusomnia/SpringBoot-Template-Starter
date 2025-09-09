@@ -1,0 +1,161 @@
+package com.example.springboot.Features.AuthAPI.Auth;
+
+import com.example.springboot.Features.AuthAPI.Account.AccountRepository;
+import com.example.springboot.Features.AuthAPI.Auth.Dtos.LoginRequest;
+import com.example.springboot.Features.AuthAPI.Auth.Dtos.RefreshRequest;
+import com.example.springboot.Features.AuthAPI.Auth.Dtos.RegisterRequest;
+import com.example.springboot.Features.AuthAPI.Auth.Dtos.EmailRequest;
+import com.example.springboot.Features.AuthAPI.EmailSender.OtpProvider;
+import com.example.springboot.Features.AuthAPI.Auth.Dtos.Payload;
+import com.example.springboot.Features.AuthAPI.Auth.Dtos.VerifiedOtp;
+import com.example.springboot.Features.CacheAPI.CacheService;
+import com.example.springboot.Features.CacheAPI.Dtos.CacheProvider;
+import com.example.springboot.Features.CacheAPI.Dtos.GetCacheRequest;
+import com.example.springboot.Features.CacheAPI.Dtos.SetCacheRequest;
+import com.example.springboot.Infrastructure.Utils.PasswordHasherBcrypt;
+import com.example.springboot.Features.AuthAPI.RefreshToken.RefreshTokenRepository;
+import com.example.springboot.Core.CustomJson;
+import com.example.springboot.Core.CustomJsonOptions;
+import com.example.springboot.Entity.Account;
+import com.example.springboot.Infrastructure.Jwt.JwtTokenProvider;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
+
+import java.io.Console;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class AuthService {
+    private final PasswordHasherBcrypt   _passwordHarsher;
+    private final JwtTokenProvider       _tokenProvider;
+    private final AccountRepository      _accountRepo;
+    private final RefreshTokenRepository _refreshTokenRepo;
+    private final JavaMailSender         _mailSender;
+    private final OtpProvider            _otpProvider;
+    private final CacheService           _cacheService;
+    
+    public void register(RegisterRequest request)
+    {
+        Account account = new Account();
+        account.setId(UUID.randomUUID().toString());
+        account.setUsername(request.username);
+        account.setPassword(_passwordHarsher.encodePassword(request.password));
+        _accountRepo.save(account);
+    }
+    
+    @SneakyThrows
+    public Map<String, Object> login(LoginRequest request) {
+        var account = _accountRepo.findAccountRoleAndPermission(request.username)
+                .orElseThrow(() -> new Exception("Can't find username"));
+        
+        log.info(CustomJson.json(account, CustomJsonOptions.WRITE_INDENTED));
+        
+        var accessToken = _tokenProvider.generateAccessToken(account);
+        var refreshToken = _tokenProvider.generateRefreshToken(account);
+
+        boolean isPassword = _passwordHarsher.validatePassword(request.password, account.get("password").toString());
+        if(!isPassword) throw new Exception("Password is not correct");
+        
+        return mapTokenResponse(accessToken, refreshToken);
+    }
+
+    @SneakyThrows
+    public Map<String, Object> refresh(RefreshRequest request) {
+        var rt = _refreshTokenRepo.findByToken(request.refreshToken)
+                .orElseThrow(() -> new Exception("Can't find refresh token"));
+        
+        if(_tokenProvider.isRefreshTokenExpired(rt)) throw new Exception("Refresh token is expired");
+        
+        var account = _accountRepo.findById(rt.getId());
+        var accessToken = _tokenProvider.generateAccessToken(account);
+        var refreshToken = _tokenProvider.generateRefreshToken(account);
+        
+        return mapTokenResponse(accessToken, refreshToken);
+    }
+    
+    public Map<String, Object> mapTokenResponse(String accessToken, String refreshToken)
+    {
+        Map<String, Object> map = new HashMap<>();
+        map.put("access-token", accessToken);
+        map.put("refresh-token", refreshToken);
+        return map;
+    }
+    
+    // --- ---
+    public void sendMessage(EmailRequest request) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(request.to);
+        message.setSubject(request.to);
+        message.setText(request.body);
+        _mailSender.send(message);
+    }
+
+    public Object generateOtp(String email) throws JsonProcessingException {
+        String otp = _otpProvider.generateNumericOtp(6);
+        String salt = UUID.randomUUID().toString().replace("-", "");
+        String hash = _otpProvider.hashOtp(otp, salt);
+        String key = "otp:" + email;
+
+
+        log.info("Generated OTP: " + otp);
+        log.info("Generated Salt: " + salt);
+        log.info("Generated Hash: " + hash);
+        
+        Payload payload = new Payload(
+                hash,
+                salt,
+                new Date(),
+                2
+        );
+        
+        SetCacheRequest req = new SetCacheRequest(CacheProvider.REDIS, key, payload);
+        log.info(CustomJson.json(req.value, CustomJsonOptions.WRITE_INDENTED));
+        _cacheService.createInstance(req.cacheProvider).setValue(req);
+
+        EmailRequest emailReq = new EmailRequest(email, "OTP Verification", otp);
+        sendMessage(emailReq);
+
+        return otp;
+    }
+    
+    public Object verifiedOtp(VerifiedOtp request) throws Exception {
+        String key = "otp:" + request.email;
+        var getCache = new GetCacheRequest<>(CacheProvider.REDIS, key, Payload.class);
+        Payload payload = _cacheService.createInstance(CacheProvider.REDIS).getValue(getCache);
+        
+        log.info(CustomJson.json(payload, CustomJsonOptions.WRITE_INDENTED));
+        
+        if(payload.isIOutOfTries()) throw new Exception("Out of tries");
+        
+        var hash = _otpProvider.hashOtp(request.otptCode, payload.getSalt());
+        log.info(hash + " " + payload.getSalt() + " " + request.otptCode);
+        if(!hash.equals(payload.getHash()))
+        {
+
+            payload.consumeTry();
+            var retryRequest = new SetCacheRequest(
+                    CacheProvider.REDIS,
+                    key,
+                    payload 
+            );
+            _cacheService.createInstance(retryRequest.cacheProvider).setValue(retryRequest);
+            throw new RuntimeException("Invalid code");
+        }
+        
+        return request.otptCode;
+    }
+}
+

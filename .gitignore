@@ -33,3 +33,4 @@ build/
 .vscode/
 .attach_*
 src/main/resources/application.properties
+src/main/java/com/example/springboot/Features/Example/
