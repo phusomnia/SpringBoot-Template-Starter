@@ -19,12 +19,9 @@ import com.example.springboot.Core.CustomJsonOptions;
 import com.example.springboot.Entity.Account;
 import com.example.springboot.Infrastructure.Jwt.JwtTokenProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -58,10 +55,9 @@ public class AuthService {
     
     @SneakyThrows
     public Map<String, Object> login(LoginRequest request) {
-        var account = _accountRepo.findAccountRoleAndPermission(request.username)
-                .orElseThrow(() -> new Exception("Can't find username"));
-        
-        log.info(CustomJson.json(account, CustomJsonOptions.WRITE_INDENTED));
+        var account = _accountRepo.findAccountRoleAndPermission(request.username);
+
+        if(account.isEmpty()) throw new Exception("Can't find account detail");
         
         var accessToken = _tokenProvider.generateAccessToken(account);
         var refreshToken = _tokenProvider.generateRefreshToken(account);
@@ -74,8 +70,9 @@ public class AuthService {
 
     @SneakyThrows
     public Map<String, Object> refresh(RefreshRequest request) {
-        var rt = _refreshTokenRepo.findByToken(request.refreshToken)
-                .orElseThrow(() -> new Exception("Can't find refresh token"));
+        var rt = _refreshTokenRepo.findByToken(request.refreshToken);
+        
+        if(rt == null) throw new Exception("Can't find token");
         
         if(_tokenProvider.isRefreshTokenExpired(rt)) throw new Exception("Refresh token is expired");
         
@@ -108,11 +105,6 @@ public class AuthService {
         String salt = UUID.randomUUID().toString().replace("-", "");
         String hash = _otpProvider.hashOtp(otp, salt);
         String key = "otp:" + email;
-
-
-        log.info("Generated OTP: " + otp);
-        log.info("Generated Salt: " + salt);
-        log.info("Generated Hash: " + hash);
         
         Payload payload = new Payload(
                 hash,
@@ -122,7 +114,9 @@ public class AuthService {
         );
         
         SetCacheRequest req = new SetCacheRequest(CacheProvider.REDIS, key, payload);
+        
         log.info(CustomJson.json(req.value, CustomJsonOptions.WRITE_INDENTED));
+        
         _cacheService.createInstance(req.cacheProvider).setValue(req);
 
         EmailRequest emailReq = new EmailRequest(email, "OTP Verification", otp);
@@ -136,12 +130,10 @@ public class AuthService {
         var getCache = new GetCacheRequest<>(CacheProvider.REDIS, key, Payload.class);
         Payload payload = _cacheService.createInstance(CacheProvider.REDIS).getValue(getCache);
         
-        log.info(CustomJson.json(payload, CustomJsonOptions.WRITE_INDENTED));
-        
         if(payload.isIOutOfTries()) throw new Exception("Out of tries");
         
         var hash = _otpProvider.hashOtp(request.otptCode, payload.getSalt());
-        log.info(hash + " " + payload.getSalt() + " " + request.otptCode);
+        
         if(!hash.equals(payload.getHash()))
         {
 
@@ -154,6 +146,8 @@ public class AuthService {
             _cacheService.createInstance(retryRequest.cacheProvider).setValue(retryRequest);
             throw new RuntimeException("Invalid code");
         }
+        
+        log.info("[SERVICE - verifiedOtp]" + key);
         
         return request.otptCode;
     }

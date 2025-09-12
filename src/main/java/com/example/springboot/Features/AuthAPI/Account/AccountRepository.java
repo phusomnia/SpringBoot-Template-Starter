@@ -3,6 +3,7 @@ package com.example.springboot.Features.AuthAPI.Account;
 import com.example.springboot.Entity.Account;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -15,9 +16,9 @@ public interface AccountRepository extends CrudRepository<Account, String> {
                     SELECT acc.id as id, acc.username as username, acc.password as password, r.name as roleName
                     FROM Account acc
                     LEFT JOIN Role r ON r.id = acc.roleId
-                    WHERE acc.username = ?
+                    WHERE acc.username = :username
                     """, nativeQuery = true)
-    Optional<Map<String, Object>> findAccountRole(String username);
+    Optional<Map<String, Object>> findAccountRole(@Param("username") String username);
 
     @Query(value = """ 
                     SELECT
@@ -30,8 +31,9 @@ public interface AccountRepository extends CrudRepository<Account, String> {
                              LEFT JOIN Role r ON r.id = acc.roleId
                              LEFT JOIN RolePermission rp ON rp.roleId = r.id
                              LEFT JOIN Permission p ON p.id = rp.permissionId
-                    WHERE acc.username = ?
+                    WHERE acc.username = :username
+                    AND acc.id IS NOT NULL
                     GROUP BY acc.id, acc.username, r.name;
                     """, nativeQuery = true)
-    Optional<Map<String, Object>> findAccountRoleAndPermission(String username);
+    Map<String, Object> findAccountRoleAndPermission(@Param("username") String username);
 }
