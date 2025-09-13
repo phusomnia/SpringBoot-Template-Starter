@@ -1,16 +1,25 @@
 package com.example.springboot.Core;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Collections;
 import java.util.Map;
 
-@Data
+@Getter
+@Setter
 public class APIResponse <T> extends BaseResponse {
-    public T data;
-    public Map<String, Object> metadata = Collections.emptyMap();
+    private T data;
+    private Map<String, Object> metadata = Collections.emptyMap();
     
     public APIResponse(){}
+
+    public APIResponse(
+            int status,
+            String message) {
+        this(status, message, null, null);
+    }
     
     public APIResponse(
             int status, 
@@ -23,11 +32,11 @@ public class APIResponse <T> extends BaseResponse {
             int status,
             String message,
             T data, 
-            Map<String, Object> metata
+            Map<String, Object> metadata
     ) 
     {
         super(status, message);
         this.data = data;
-        this.metadata = metata;
+        this.metadata = metadata;
     }
 }

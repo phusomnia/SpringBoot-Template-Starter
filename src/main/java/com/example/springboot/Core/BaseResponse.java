@@ -1,8 +1,13 @@
 package com.example.springboot.Core;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class BaseResponse {
-    public int statusCode;
-    public String message;
+    private int statusCode;
+    private String message;
     
     public BaseResponse(){}
     public BaseResponse(int statusCode,String message){

@@ -1,5 +1,7 @@
 package com.example.springboot.Features.AuthAPI.Auth;
 
+import com.cloudinary.api.exceptions.ApiException;
+import com.example.springboot.Core.APIException;
 import com.example.springboot.Core.APIResponse;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.LoginRequest;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.RefreshRequest;
@@ -8,10 +10,13 @@ import com.example.springboot.Features.AuthAPI.Auth.Dtos.Payload;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.VerifiedOtp;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -41,25 +46,24 @@ public class AuthController {
     }
     
     @PostMapping("login")
-    public ResponseEntity<Object> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<Object> login(
+        @Valid @RequestBody LoginRequest request,
+        HttpServletResponse response
+    ) {
         try {
-            var result = _authService.login(request);
+            var result = _authService.authenticate(request);
 
-            var response = new APIResponse<Object>(
-                    HttpStatus.OK.value(), 
-                    "Login successfully",
-                    result
-            );
+            ResponseCookie cookie = ResponseCookie.from("refresh-token", result.getData().get("refresh-token").toString())
+                    .httpOnly(true)       // prevent JS access
+                    .sameSite("Strict")   
+                    .path("/")
+                    .build();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
             
-            return ResponseEntity.status(response.statusCode).body(response);
+            return ResponseEntity.status(result.getStatusCode()).body(result);
         } catch (Exception e) {
-            var errorResponse = new APIResponse<>(
-                    HttpStatus.BAD_REQUEST.value(),
-                    e.getMessage(),
-                    null
-            );
-            
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e);
         }
     }
 
@@ -68,13 +72,11 @@ public class AuthController {
         try {
             var result = _authService.refresh(request);
             
-            
-            
             return ResponseEntity.status(HttpStatus.CREATED).body(
                     result
             );
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e);
         }
     }
 
@@ -87,7 +89,7 @@ public class AuthController {
                     result
             );
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e);
         }
     }
 

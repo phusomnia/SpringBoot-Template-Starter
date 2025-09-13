@@ -1,5 +1,7 @@
 package com.example.springboot.Features.AuthAPI.Auth;
 
+import com.example.springboot.Core.APIException;
+import com.example.springboot.Core.APIResponse;
 import com.example.springboot.Features.AuthAPI.Account.AccountRepository;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.LoginRequest;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.RefreshRequest;
@@ -22,6 +24,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -54,33 +59,57 @@ public class AuthService {
     }
     
     @SneakyThrows
-    public Map<String, Object> login(LoginRequest request) {
+    public APIResponse<Map<String, Object>> authenticate(LoginRequest request) {
+        
         var account = _accountRepo.findAccountRoleAndPermission(request.username);
-
-        if(account.isEmpty()) throw new Exception("Can't find account detail");
+        if(account.isEmpty()) return new APIResponse<>(
+                HttpStatus.BAD_REQUEST.value(), 
+                "Username not found"
+        );
         
         var accessToken = _tokenProvider.generateAccessToken(account);
         var refreshToken = _tokenProvider.generateRefreshToken(account);
 
-        boolean isPassword = _passwordHarsher.validatePassword(request.password, account.get("password").toString());
-        if(!isPassword) throw new Exception("Password is not correct");
+        boolean isPassword = _passwordHarsher.validatePassword(
+                request.password, 
+                account.get("password").toString()
+        );
+        if(!isPassword) return new APIResponse<>(
+                HttpStatus.BAD_REQUEST.value(), 
+                "Password is not corrected"
+        );
         
-        return mapTokenResponse(accessToken, refreshToken);
+        return new APIResponse<Map<String, Object>>(
+                HttpStatus.OK.value(),
+                "Login successfully",
+                mapTokenResponse(accessToken, refreshToken)
+        );
     }
 
     @SneakyThrows
-    public Map<String, Object> refresh(RefreshRequest request) {
+    public APIResponse<?> refresh(RefreshRequest request) {
         var rt = _refreshTokenRepo.findByToken(request.refreshToken);
         
-        if(rt == null) throw new Exception("Can't find token");
+        if(rt == null) return new APIResponse<>(
+            HttpStatus.BAD_REQUEST.value(),
+            "Password is not corrected"
+        );;
         
-        if(_tokenProvider.isRefreshTokenExpired(rt)) throw new Exception("Refresh token is expired");
+        if(_tokenProvider.isRefreshTokenExpired(rt)) 
+            return new APIResponse<>(
+                HttpStatus.BAD_REQUEST.value(),
+                "Token is expired"
+        );;
         
         var account = _accountRepo.findById(rt.getId());
         var accessToken = _tokenProvider.generateAccessToken(account);
         var refreshToken = _tokenProvider.generateRefreshToken(account);
-        
-        return mapTokenResponse(accessToken, refreshToken);
+
+        return new APIResponse<>(
+                HttpStatus.OK.value(),
+                "Refresh successfully",
+                mapTokenResponse(accessToken, refreshToken)
+        );
     }
     
     public Map<String, Object> mapTokenResponse(String accessToken, String refreshToken)
@@ -114,8 +143,6 @@ public class AuthService {
         );
         
         SetCacheRequest req = new SetCacheRequest(CacheProvider.REDIS, key, payload);
-        
-        log.info(CustomJson.json(req.value, CustomJsonOptions.WRITE_INDENTED));
         
         _cacheService.createInstance(req.cacheProvider).setValue(req);
 
