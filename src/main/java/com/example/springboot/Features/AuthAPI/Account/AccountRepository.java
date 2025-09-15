@@ -28,9 +28,9 @@ public interface AccountRepository extends CrudRepository<Account, String> {
                         r.name AS roleName,
                         GROUP_CONCAT(p.name SEPARATOR ', ') AS permissionList
                     FROM Account acc
-                             LEFT JOIN Role r ON r.id = acc.roleId
-                             LEFT JOIN RolePermission rp ON rp.roleId = r.id
-                             LEFT JOIN Permission p ON p.id = rp.permissionId
+                         LEFT JOIN Role r ON r.id = acc.roleId
+                         LEFT JOIN RolePermission rp ON rp.roleId = r.id
+                         LEFT JOIN Permission p ON p.id = rp.permissionId
                     WHERE acc.username = :username
                     AND acc.id IS NOT NULL
                     GROUP BY acc.id, acc.username, r.name;

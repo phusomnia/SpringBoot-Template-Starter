@@ -2,6 +2,7 @@ package com.example.springboot.Features.AuthAPI.Auth;
 
 import com.example.springboot.Core.APIException;
 import com.example.springboot.Core.APIResponse;
+import com.example.springboot.Entity.Role;
 import com.example.springboot.Features.AuthAPI.Account.AccountRepository;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.LoginRequest;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.RefreshRequest;
@@ -10,6 +11,7 @@ import com.example.springboot.Features.AuthAPI.Auth.Dtos.EmailRequest;
 import com.example.springboot.Features.AuthAPI.EmailSender.OtpProvider;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.Payload;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.VerifiedOtp;
+import com.example.springboot.Features.AuthAPI.Role.RoleRepository;
 import com.example.springboot.Features.CacheAPI.CacheService;
 import com.example.springboot.Features.CacheAPI.Dtos.CacheProvider;
 import com.example.springboot.Features.CacheAPI.Dtos.GetCacheRequest;
@@ -21,6 +23,7 @@ import com.example.springboot.Core.CustomJsonOptions;
 import com.example.springboot.Entity.Account;
 import com.example.springboot.Infrastructure.Jwt.JwtTokenProvider;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import io.jsonwebtoken.Jwt;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +32,12 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.io.Console;
+import java.nio.file.attribute.UserPrincipal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,6 +54,7 @@ public class AuthService {
     private final JavaMailSender         _mailSender;
     private final OtpProvider            _otpProvider;
     private final CacheService           _cacheService;
+    private final RoleRepository         _roleRepository;
     
     public void register(RegisterRequest request)
     {
@@ -177,6 +184,12 @@ public class AuthService {
         log.info("[SERVICE - verifiedOtp]" + key);
         
         return request.otptCode;
+    }
+
+    public boolean hasRole(Authentication auth, String role) {
+        if (auth == null || role == null) return false;
+        
+        return auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_" + role)); 
     }
 }
 

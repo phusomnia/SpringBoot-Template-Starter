@@ -3,13 +3,17 @@ package com.example.springboot.Features.AuthAPI.Auth;
 import com.cloudinary.api.exceptions.ApiException;
 import com.example.springboot.Core.APIException;
 import com.example.springboot.Core.APIResponse;
+import com.example.springboot.Core.CustomJson;
+import com.example.springboot.Core.CustomJsonOptions;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.LoginRequest;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.RefreshRequest;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.RegisterRequest;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.Payload;
 import com.example.springboot.Features.AuthAPI.Auth.Dtos.VerifiedOtp;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +23,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 
@@ -52,14 +58,20 @@ public class AuthController {
     ) {
         try {
             var result = _authService.authenticate(request);
-
-            ResponseCookie cookie = ResponseCookie.from("refresh-token", result.getData().get("refresh-token").toString())
-                    .httpOnly(true)       // prevent JS access
-                    .sameSite("Strict")   
-                    .path("/")
-                    .build();
-
-            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+            
+            log.info(CustomJson.json(result.getData(), CustomJsonOptions.WRITE_INDENTED));
+            if(result.getData() != null)
+            {
+                log.info("set cookie");
+                ResponseCookie cookie = ResponseCookie.from("refresh-token", String.valueOf(result.getData().get("refresh-token")))
+                        .httpOnly(true)
+                        .secure(false)
+                        .sameSite("Strict")
+                        .path("/")
+                        .build();
+    
+                response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());            
+            }
             
             return ResponseEntity.status(result.getStatusCode()).body(result);
         } catch (Exception e) {
@@ -107,26 +119,14 @@ public class AuthController {
     }
     
     @SecurityRequirement(name = "JWT")
-    @GetMapping("auth/secure-by-role")
-    @PreAuthorize("hasRole('Admin')")
-    public ResponseEntity<Object> securebyRole() {
+    @GetMapping("auth/{url}")
+    @PreAuthorize("@authService.hasRole(authentication, #roleAllowed)")
+    public ResponseEntity<Object> checkRole(
+            @Parameter String roleAllowed,
+            @PathVariable String url) 
+    {
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    "Ok"
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
-    
-    @SecurityRequirement(name = "JWT")
-    @GetMapping("auth/secure-by-permission")
-    @PreAuthorize("hasAuthority('Read')")
-    public ResponseEntity<Object> secure() {
-        try {
-            return ResponseEntity.status(HttpStatus.OK).body(
-                    "Ok"
-            );
+            return ResponseEntity.status(HttpStatus.OK).body(Map.of("url", url));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

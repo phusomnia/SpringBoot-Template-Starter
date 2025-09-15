@@ -34,12 +34,13 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
             String jwtToken = authHeader.substring(7);
-            if(!_jwtTokenProvider.isAccessTokenExpired(jwtToken)){
-                var auth = _jwtTokenProvider.getAuthentication(jwtToken);
-//                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+            if(_jwtTokenProvider.isAccessTokenExpired(jwtToken)){
+                throw new ServletException("Expired or invalid JWT token");
             }
             
+            var auth = _jwtTokenProvider.getAuthentication(jwtToken);
+//                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(auth);
             filterChain.doFilter(request, response);
         } catch (Exception e)
         {

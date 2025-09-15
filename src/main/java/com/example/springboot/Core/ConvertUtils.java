@@ -10,7 +10,7 @@ public class ConvertUtils
 {
     private static final Gson gson = new Gson();
 
-    public static <T> Map<String, Object> toDict(T value) {
+    public static <T> Map<String, Object> toMap(T value) {
         String json = gson.toJson(value);
         Type type = new TypeToken<Map<String, Object>>() {}.getType();
         return gson.fromJson(json, type);

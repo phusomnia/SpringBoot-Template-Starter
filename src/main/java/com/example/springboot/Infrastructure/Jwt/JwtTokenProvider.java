@@ -46,20 +46,20 @@ public class JwtTokenProvider {
     
     @SneakyThrows
     public <TAccount> String generateAccessToken(TAccount account) {
-        var dictAccount = ConvertUtils.toDict(account);
+        var mapAccount = ConvertUtils.toMap(account);
         Expression expression = new ExpressionBuilder(JWT_EXPIRATION).build();
         long result = Double.valueOf(expression.evaluate()).longValue();
 
-        String permissionList = dictAccount.get("permissionList").toString();
+        String permissionList = mapAccount.get("permissionList").toString();
         String[] permissions = permissionList.split(", ");
         
         var token = Jwts.builder()
                 .setClaims(Map.of(
-                        "roles", dictAccount.get("roleName"),
+                        "roles", mapAccount.get("roleName"),
                         "permissions", permissions
                     )
                 )
-                .setSubject(dictAccount.get("id").toString())
+                .setSubject(mapAccount.get("id").toString())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + result))
                 .signWith(key(), SignatureAlgorithm.HS256)
@@ -94,17 +94,17 @@ public class JwtTokenProvider {
 
     public <TAccount> boolean validateToken(String token,TAccount account)
     {
-        var dictAcc = ConvertUtils.toDict(account);
-        log.info(dictAcc.toString());
+        var mapAccount = ConvertUtils.toMap(account);
+        log.info(mapAccount.toString());
         String accountId = extractSubject(token);
-        return accountId.equals(dictAcc.get("id").toString()) && !isAccessTokenExpired(token);
+        return accountId.equals(mapAccount.get("id").toString()) && !isAccessTokenExpired(token);
     }
     
     // ### REFRESH TOKEN ###
     public <TAccount> String generateRefreshToken(TAccount account)
     {
-        var dictAcc = ConvertUtils.toDict(account);
-        Account acc = _accountRepo.findByUsername(dictAcc.get("username").toString()).orElseThrow(() -> new RuntimeException("Account is not found"));
+        var mapAccount = ConvertUtils.toMap(account);
+        Account acc = _accountRepo.findByUsername(mapAccount.get("username").toString()).orElseThrow(() -> new RuntimeException("Account is not found"));
 
         Expression expression = new ExpressionBuilder(JWT_EXPIRATION).build();
         long rtTimeExpiry = Double.valueOf(expression.evaluate()).longValue();
