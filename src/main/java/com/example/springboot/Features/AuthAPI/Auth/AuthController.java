@@ -40,15 +40,10 @@ public class AuthController {
     
     @PostMapping("register")
     public ResponseEntity<Object> register(@RequestBody RegisterRequest request) {
-        try {
-            _authService.register(request);
-            
-            return ResponseEntity.status(HttpStatus.CREATED).body(
-                    "Registered successfully"
-            );
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
-        }
+        _authService.register(request);
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                "Registered successfully");
     }
     
     @PostMapping("login")
