@@ -78,7 +78,7 @@ public class AuthService {
                 account.get("password").toString()
         );
         
-        if(!isPassword) throw new APIException(HttpStatus.BAD_REQUEST.value(), "Can't find username");
+        if(!isPassword) throw new APIException(HttpStatus.BAD_REQUEST.value(), "Wrong password");
         
         return new APIResponse<Map<String, Object>>(
                 HttpStatus.OK.value(),
@@ -91,16 +91,9 @@ public class AuthService {
     public APIResponse<?> refresh(RefreshRequest request) {
         var rt = _refreshTokenRepo.findByToken(request.refreshToken);
         
-        if(rt == null) return new APIResponse<>(
-            HttpStatus.BAD_REQUEST.value(),
-            "Password is not corrected"
-        );;
+        if(rt == null) throw new APIException(HttpStatus.BAD_REQUEST.value(), "Can't find refresh token");
         
-        if(_tokenProvider.isRefreshTokenExpired(rt)) 
-            return new APIResponse<>(
-                HttpStatus.BAD_REQUEST.value(),
-                "Token is expired"
-        );;
+        if(_tokenProvider.isRefreshTokenExpired(rt)) throw new APIException(HttpStatus.BAD_REQUEST.value(), "Refresh token expired");
         
         var account = _accountRepo.findById(rt.getId());
         var accessToken = _tokenProvider.generateAccessToken(account);

@@ -109,7 +109,6 @@ public class JwtTokenProvider {
         Expression expression = new ExpressionBuilder(JWT_EXPIRATION).build();
         long rtTimeExpiry = Double.valueOf(expression.evaluate()).longValue();
         
-//        var refreshToken = Base64.getEncoder().encodeToString(acc.getId().getBytes());
         String refreshToken = UUID.randomUUID().toString(); 
         
         RefreshToken rt = new RefreshToken();
@@ -118,7 +117,7 @@ public class JwtTokenProvider {
         rt.setAccountId(acc.getId());
         rt.setExpiryDate(Instant.now().plusMillis(rtTimeExpiry));
         
-        _refreshTokenRepo.save(rt);
+//        _refreshTokenRepo.save(rt);
         
         return rt.getToken();
     }
