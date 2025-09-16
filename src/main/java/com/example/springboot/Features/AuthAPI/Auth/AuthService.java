@@ -54,7 +54,6 @@ public class AuthService {
     private final JavaMailSender         _mailSender;
     private final OtpProvider            _otpProvider;
     private final CacheService           _cacheService;
-    private final RoleRepository         _roleRepository;
     
     public void register(RegisterRequest request)
     {
@@ -69,10 +68,7 @@ public class AuthService {
     public APIResponse<Map<String, Object>> authenticate(LoginRequest request) {
         
         var account = _accountRepo.findAccountRoleAndPermission(request.username);
-        if(account.isEmpty()) return new APIResponse<>(
-                HttpStatus.BAD_REQUEST.value(), 
-                "Username not found"
-        );
+        if(account.isEmpty()) throw new APIException(HttpStatus.BAD_REQUEST.value(), "Can't find username");
         
         var accessToken = _tokenProvider.generateAccessToken(account);
         var refreshToken = _tokenProvider.generateRefreshToken(account);
@@ -81,10 +77,8 @@ public class AuthService {
                 request.password, 
                 account.get("password").toString()
         );
-        if(!isPassword) return new APIResponse<>(
-                HttpStatus.BAD_REQUEST.value(), 
-                "Password is not corrected"
-        );
+        
+        if(!isPassword) throw new APIException(HttpStatus.BAD_REQUEST.value(), "Can't find username");
         
         return new APIResponse<Map<String, Object>>(
                 HttpStatus.OK.value(),

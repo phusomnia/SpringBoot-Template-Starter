@@ -56,27 +56,23 @@ public class AuthController {
         @Valid @RequestBody LoginRequest request,
         HttpServletResponse response
     ) {
-        try {
-            var result = _authService.authenticate(request);
-            
-            log.info(CustomJson.json(result.getData(), CustomJsonOptions.WRITE_INDENTED));
-            if(result.getData() != null)
-            {
-                log.info("set cookie");
-                ResponseCookie cookie = ResponseCookie.from("refresh-token", String.valueOf(result.getData().get("refresh-token")))
-                        .httpOnly(true)
-                        .secure(false)
-                        .sameSite("Strict")
-                        .path("/")
-                        .build();
-    
-                response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());            
-            }
-            
-            return ResponseEntity.status(result.getStatusCode()).body(result);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e);
+        var result = _authService.authenticate(request);
+        
+        log.info(CustomJson.json(result.getData(), CustomJsonOptions.WRITE_INDENTED));
+        if(result.getData() != null)
+        {
+            log.info("set cookie");
+            ResponseCookie cookie = ResponseCookie.from("refresh-token", String.valueOf(result.getData().get("refresh-token")))
+                    .httpOnly(true)
+                    .secure(false)
+                    .sameSite("Strict")
+                    .path("/")
+                    .build();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());            
         }
+        
+        return ResponseEntity.status(result.getStatusCode()).body(result);
     }
 
     @PostMapping("refresh")
