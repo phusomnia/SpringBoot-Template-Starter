@@ -18,7 +18,7 @@ public interface AccountRepository extends CrudRepository<Account, String> {
                     LEFT JOIN Role r ON r.id = acc.roleId
                     WHERE acc.username = :username
                     """, nativeQuery = true)
-    Optional<Map<String, Object>> findAccountRole(@Param("username") String username);
+    Map<String, Object> findAccountRole(@Param("username") String username);
 
     @Query(value = """ 
                     SELECT
