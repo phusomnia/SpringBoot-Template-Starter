@@ -13,6 +13,7 @@ logging.level.org.springframework.security=DEBUG
 springdoc.api-docs.path=/api-docs
 
 ### Config database ###
+```
 spring.datasource.url=MYSQL_URL
 spring.datasource.username=MYSQL_USERNAME
 spring.datasource.password=MYSQL_PASSWORD
@@ -20,19 +21,23 @@ spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 logging.level.org.springframework.jdbc.core=DEBUG
 logging.level.org.springframework.jdbc.core.JdbcTemplate=DEBUG
+```
 
 ### Virtual thread config ###
+```
 spring.threads.virtual.enabled=true
 spring.main.keep-alive=true
-
+```
 ### Security config ###
+```
 spring.security.user.name=YOUR_USERNAME
 spring.security.user.password=YOUR_PASSWORD
-
+```
 ### JWT config ###
+```
 jwt.secret=SECRET_KEY
 jwt.expiration=30*1000
-
+```
 ### Cloudinary config ###
 spring.servlet.multipart.enabled=true
 cloudinary.url=CLOUD_API_KEY
