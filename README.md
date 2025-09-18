@@ -6,14 +6,13 @@
 - Cloudinary API Key
 All configuration values are stored in the application.properties file.
 
-## Configuration
+### Configuration ###
 spring.application.name=SpringBoot
 logging.level.org.springframework.security=DEBUG
 
 springdoc.api-docs.path=/api-docs
 
-# Config database
-#spring.jpa.hibernate.ddl-auto=update
+### Config database ###
 spring.datasource.url=MYSQL_URL
 spring.datasource.username=MYSQL_USERNAME
 spring.datasource.password=MYSQL_PASSWORD
