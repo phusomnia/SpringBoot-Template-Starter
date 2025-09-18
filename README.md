@@ -3,8 +3,8 @@
 ## Requirements:
 - Mysql 8.0
 - Redis 
-- Cloudinary API Key
-All configuration values are stored in the application.properties file.
+- Cloudinary
+- Mail
 
 ### Configuration ###
 ```
