@@ -11,6 +11,6 @@ public class MessageConsumer
     @RabbitListener()
     public void recieve(Message message)
     {
-        log.info("Recieved: " + message);
+        log.info("[Recieved]: " + message);
     }
 }
