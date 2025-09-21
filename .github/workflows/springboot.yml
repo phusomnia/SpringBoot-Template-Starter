@@ -1,0 +1,25 @@
+name: SpringBoot CI/CD
+
+on: 
+  push: 
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+    
+jobs:
+  build-springboot:
+    name: Build SpringBoot 3.x App
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build with Maven (skip tests)
+        run: mvn clean package -DskipTests

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat demo</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+</head>
+<body>
+<div id="chat-room">
+    <h1>Chat room</h1>
+    <div id="messages"></div>
+    <input type="text" id="message-input" placeholder="Type your message..."/>
+</div>
+</body>
+<script>
+    const messageInput = document.getElementById('message-input');
+    messageInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            sendWs();
+            messageInput.value = "";
+        }
+    })
+
+    let stompClient
+    function connect()
+    {
+        console.log('connecting...');
+        const socket = new SockJS("/ws");
+        stompClient = Stomp.over(socket);
+        stompClient.connect({}, (frame) => {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe("/topic/message", (message) => {
+                console.log(message);
+            })
+        });
+    }
+
+    function sendWs()
+    {
+        console.log('sending...');
+        const msg = {
+            from: "Anonymous",
+            text: messageInput.value
+        };
+        stompClient.send("/app/send", {}, JSON.stringify(msg));
+    }
+
+    window.onload = connect
+</script>
+</html>
