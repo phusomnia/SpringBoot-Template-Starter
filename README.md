@@ -61,3 +61,12 @@ spring.jackson.date-format=yyyy-MM-dd HH:mm:ss
 spring.jackson.time-zone=Asia/Ho_Chi_Minh
 spring.jackson.serialization.write-dates-as-timestamps=false
 ```
+
+## Folder structure guide line
+
+Domain: contain business rules and data structures
+Application: 
+Infrastructure: 
+Presentation (Api): 
+
+
