@@ -1,0 +1,25 @@
+package com.example.springboot.SharedKernel.entities;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "Manga", schema = "spring")
+public class Manga {
+    @Id
+    @Size(max = 36)
+    @Column(name = "id", nullable = false, length = 36)
+    private String id;
+
+    @Size(max = 255)
+    @Column(name = "title")
+    private String title;
+
+}
