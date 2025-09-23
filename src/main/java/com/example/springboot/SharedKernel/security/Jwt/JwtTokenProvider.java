@@ -2,9 +2,9 @@ package com.example.springboot.SharedKernel.security.Jwt;
 
 import com.example.springboot.Features.Auth.repositories.AccountRepository;
 import com.example.springboot.Features.Auth.repositories.RefreshTokenRepository;
-import com.example.springboot.SharedKernel.entities.Account;
-import com.example.springboot.SharedKernel.entities.RefreshToken;
-import com.example.springboot.SharedKernel.enums.CustomJsonOptions;
+import com.example.springboot.Domain.entities.Account;
+import com.example.springboot.Domain.entities.RefreshToken;
+import com.example.springboot.Domain.entities.enums.CustomJsonOptions;
 import com.example.springboot.SharedKernel.utils.ConvertUtils;
 import com.example.springboot.SharedKernel.utils.CustomJson;
 import io.jsonwebtoken.Claims;

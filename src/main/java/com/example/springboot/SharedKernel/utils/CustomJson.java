@@ -1,6 +1,6 @@
 package com.example.springboot.SharedKernel.utils;
 
-import com.example.springboot.SharedKernel.enums.CustomJsonOptions;
+import com.example.springboot.Domain.entities.enums.CustomJsonOptions;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 

@@ -16,7 +16,7 @@ import com.example.springboot.SharedKernel.exception.APIException;
 import com.example.springboot.SharedKernel.api.APIResponse;
 import com.example.springboot.SharedKernel.security.Jwt.JwtTokenProvider;
 import com.example.springboot.Features.Auth.utils.PasswordHasherBcrypt;
-import com.example.springboot.SharedKernel.entities.Account;
+import com.example.springboot.Domain.entities.Account;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;

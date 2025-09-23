@@ -1,4 +1,4 @@
-package com.example.springboot.SharedKernel.entities;
+package com.example.springboot.Domain.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -8,18 +8,27 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
+
 @Getter
 @Setter
 @Entity
-@Table(name = "Manga", schema = "spring")
-public class Manga {
+@Table(name = "RefreshToken", schema = "spring")
+public class RefreshToken {
     @Id
     @Size(max = 36)
     @Column(name = "id", nullable = false, length = 36)
     private String id;
 
     @Size(max = 255)
-    @Column(name = "title")
-    private String title;
+    @Column(name = "token")
+    private String token;
+
+    @Size(max = 36)
+    @Column(name = "account_Id", length = 36)
+    private String accountId;
+
+    @Column(name = "expiryDate")
+    private Instant expiryDate;
 
 }

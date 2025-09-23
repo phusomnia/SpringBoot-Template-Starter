@@ -5,7 +5,7 @@ import com.example.springboot.Features.Auth.dtos.RefreshRequest;
 import com.example.springboot.Features.Auth.dtos.VerifiedOtp;
 import com.example.springboot.Features.Auth.services.AuthService;
 import com.example.springboot.Features.Auth.dtos.RegisterRequest;
-import com.example.springboot.SharedKernel.enums.CustomJsonOptions;
+import com.example.springboot.Domain.entities.enums.CustomJsonOptions;
 import com.example.springboot.SharedKernel.utils.CustomJson;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;

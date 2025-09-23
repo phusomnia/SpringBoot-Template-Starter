@@ -5,7 +5,7 @@ import com.example.springboot.Features.RealTime.CloudStorage.Cloudinary.Cloudina
 import com.example.springboot.Features.RealTime.CloudStorage.Dtos.CloudProvider;
 import com.example.springboot.Features.RealTime.CloudStorage.Dtos.DeleteRequest;
 import com.example.springboot.Features.RealTime.CloudStorage.Dtos.UploadRequest;
-import com.example.springboot.SharedKernel.enums.CustomJsonOptions;
+import com.example.springboot.Domain.entities.enums.CustomJsonOptions;
 import com.example.springboot.SharedKernel.utils.CustomJson;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

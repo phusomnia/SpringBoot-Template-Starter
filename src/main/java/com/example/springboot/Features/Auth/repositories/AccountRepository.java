@@ -1,6 +1,6 @@
 package com.example.springboot.Features.Auth.repositories;
 
-import com.example.springboot.SharedKernel.entities.Account;
+import com.example.springboot.Domain.entities.Account;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;

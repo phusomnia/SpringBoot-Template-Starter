@@ -1,4 +1,4 @@
-package com.example.springboot.SharedKernel.entities;
+package com.example.springboot.Domain.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
