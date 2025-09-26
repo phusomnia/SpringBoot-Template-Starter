@@ -1,4 +1,4 @@
-package com.example.springboot.SharedKernel.config;
+package com.example.springboot.Features.RealTime.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

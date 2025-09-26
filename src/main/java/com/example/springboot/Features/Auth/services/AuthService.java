@@ -4,6 +4,7 @@ import com.example.springboot.Features.Auth.dtos.LoginRequest;
 import com.example.springboot.Features.Auth.dtos.Payload;
 import com.example.springboot.Features.Auth.dtos.RefreshRequest;
 import com.example.springboot.Features.Auth.dtos.VerifiedOtp;
+import com.example.springboot.Features.Auth.utils.OtpProvider;
 import com.example.springboot.Features.Cache.CacheService;
 import com.example.springboot.Features.Cache.dtos.CacheProvider;
 import com.example.springboot.Features.Cache.dtos.GetCacheRequest;
@@ -43,7 +44,7 @@ public class AuthService {
     private final RefreshTokenRepository _refreshTokenRepo;
     private final JavaMailSender         _mailSender;
     private final OtpProvider            _otpProvider;
-    private final CacheService _cacheService;
+    private final CacheService           _cacheService;
     
     public void register(RegisterRequest request)
     {
@@ -104,7 +105,6 @@ public class AuthService {
         return map;
     }
     
-    // --- ---
     public void sendMessage(EmailRequest request) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(request.to);

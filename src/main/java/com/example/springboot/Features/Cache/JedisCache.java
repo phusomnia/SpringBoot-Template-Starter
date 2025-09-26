@@ -2,7 +2,7 @@ package com.example.springboot.Features.Cache;
 
 import com.example.springboot.Features.Cache.dtos.GetCacheRequest;
 import com.example.springboot.Features.Cache.dtos.SetCacheRequest;
-import com.example.springboot.SharedKernel.config.JedisConfig;
+import com.example.springboot.Features.RealTime.config.JedisConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

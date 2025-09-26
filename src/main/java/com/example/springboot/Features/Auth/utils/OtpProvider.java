@@ -1,4 +1,4 @@
-package com.example.springboot.Features.Auth.services;
+package com.example.springboot.Features.Auth.utils;
 
 import org.springframework.stereotype.Component;
 

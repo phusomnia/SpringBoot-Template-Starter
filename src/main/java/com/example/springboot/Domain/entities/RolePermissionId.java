@@ -14,7 +14,7 @@ import java.util.Objects;
 @Setter
 @Embeddable
 public class RolePermissionId implements java.io.Serializable {
-    private static final long serialVersionUID = -7765978906186230552L;
+    private static final long serialVersionUID = 4249284489064710935L;
     @Size(max = 36)
     @NotNull
     @Column(name = "roleId", nullable = false, length = 36)

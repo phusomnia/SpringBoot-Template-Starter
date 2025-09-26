@@ -23,8 +23,8 @@ public class Account {
     @Column(name = "password")
     private String password;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "roleId")
-//    private com.example.springboot.Entity.Role role;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "roleId")
+    private Role role;
 
 }
